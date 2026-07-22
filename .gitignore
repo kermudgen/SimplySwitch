@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+
+# Packaging output — rebuilt from simply_switch.py by _make_zip.ps1
+build/
+dist/
