@@ -39,7 +39,7 @@ It then switches to that armature, preserving your current pose. Linked characte
 Simply Switch is free software under the **GNU General Public License v3.0 or later** (Blender add-ons that use the Blender Python API are derivative works and are licensed under the GPL). See the bundled `LICENSE` file. You are paying for the packaged tool, updates, and support — thank you for supporting independent tool development.
 
 ## Support
-Questions or bugs: [your support email / link]
+Questions or bugs: [support@bentbonelab.com](mailto:support@bentbonelab.com)
 
 ---
 *BentBoneLab — tools that get out of the way so you can make the thing.*
