@@ -16,7 +16,7 @@ that bone selected and active, so the click isn't wasted on the switch.
 bl_info = {
     "name": "Simply Switch",
     "author": "BentBoneLab",
-    "version": (1, 1, 0),
+    "version": (1, 1, 1),
     "blender": (3, 2, 0),
     "location": "3D Viewport > Sidebar (N) > Simply Switch; runs modally in Pose Mode",
     "description": "Click a mesh to switch active armature without leaving Pose Mode",
@@ -281,6 +281,38 @@ def _ops_override(context):
     return fallback
 
 
+def _heal_pose_tool(context):
+    """Clear an invalid brush tool left in Pose mode's tool slot.
+
+    Blender's brush-asset system (4.3+) can leave a sculpt/paint brush id such
+    as 'builtin_brush.Draw' remembered as the active tool for Pose mode, where
+    no brush tool is valid. Every entry into Pose Mode then reports
+    "Tool 'builtin_brush.Draw' not found for space 'VIEW_3D'". Switching rigs
+    enters Pose Mode, so the switch surfaces it on every click.
+
+    Only touches the slot when it holds a brush tool, so a deliberate tool
+    choice is never overridden, and only while actually in Pose Mode (that is
+    the slot bpy.ops.wm.tool_set_by_id writes to).
+    """
+    if context.mode != 'POSE':
+        return
+
+    tool = next((t for t in context.workspace.tools
+                 if t.space_type == 'VIEW_3D' and t.mode == 'POSE'), None)
+    if tool is None or 'brush' not in tool.idname.lower():
+        return
+
+    ov = _ops_override(context)
+    try:
+        if ov:
+            with bpy.context.temp_override(**ov):
+                bpy.ops.wm.tool_set_by_id(name='builtin.select_box')
+        else:
+            bpy.ops.wm.tool_set_by_id(name='builtin.select_box')
+    except RuntimeError as exc:
+        print(f"[SimplySwitch] Could not reset Pose tool: {exc}")
+
+
 def _switch_to_armature(context, armature):
     """Switch active object to armature and enter Pose Mode, preserving pose.
 
@@ -321,6 +353,10 @@ def _switch_to_armature(context, armature):
     except (RuntimeError, ReferenceError) as exc:
         print(f"[SimplySwitch] Could not switch to {armature.name}: {exc}")
         return False
+
+    # Correct a stale brush tool in the Pose slot so this switch (and every
+    # future entry into Pose Mode) doesn't report a missing tool.
+    _heal_pose_tool(context)
 
     print(f"[SimplySwitch] Switched to: {armature.name}")
     return True
@@ -439,6 +475,9 @@ class SIMPLYSWITCH_OT_modal(bpy.types.Operator):
         self._generation = _next_generation()
         context.window_manager.modal_handler_add(self)
         _set_running(True)
+        # Heal up front so even the first switch is quiet (Start is normally
+        # pressed while already in Pose Mode).
+        _heal_pose_tool(context)
         self._set_header(context, "Simply Switch active — click any rig to switch")
         print("[SimplySwitch] Modal started")
         return {'RUNNING_MODAL'}

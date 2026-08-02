@@ -12,7 +12,7 @@ By BentBoneLab.
 - **Blender 3.2 or newer** (uses the `temp_override` context API introduced in 3.2)
 
 ## Install
-1. Download `SimplySwitch_v1.1.0.zip` (do **not** unzip it).
+1. Download `SimplySwitch_v1.1.1.zip` (do **not** unzip it).
 2. In Blender: **Edit → Preferences → Add-ons → Install from Disk…** (older versions: the **Install…** button).
 3. Select the zip and enable **"Rigging: Simply Switch"** in the list.
 
